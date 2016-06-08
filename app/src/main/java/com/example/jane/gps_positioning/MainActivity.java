@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     LocService lService;
 
     boolean bound = false;
-
+    IMyPositionInterface myPos;
     TextView lat, lon, speed, dist;
 
     @Override
@@ -33,10 +33,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-       /* lat = (TextView) findViewById(R.id.lat);
+        lat = (TextView) findViewById(R.id.lat);
         lon = (TextView) findViewById(R.id.lon);
         speed = (TextView) findViewById(R.id.speed);
-        dist = (TextView) findViewById(R.id.dist);*/
+        dist = (TextView) findViewById(R.id.dist);
 
     }
 
@@ -44,11 +44,11 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            LocService.MyBinder bind = (LocService.MyBinder) service;
-            lService = bind.getService();   //object for the service LocService
+            /*LocService.MyBinder bind = (LocService.MyBinder) service;
+            lService = bind.getService();  */ //object for the service LocService
             bound = true;
 
-            /*myPosProxy = IMyPositionInterface.Stub.asInterface(service);*/
+            myPos = IMyPositionInterface.Stub.asInterface(service);
 
         }
 
@@ -74,14 +74,16 @@ public class MainActivity extends AppCompatActivity {
         stopService(new Intent(this, LocService.class));
     }
 
-    /*//update button clicked
+    //update button clicked
     public void updateValues(View v) {
         try {
-            lat.setText(Double.toString(myPosProxy.getLatitude()));
-            lon.setText(Double.toString(myPosProxy.getLongitude()));
+            lat.setText(Double.toString(myPos.getLatitude()));
+            lon.setText(Double.toString(myPos.getLongitude()));
+            dist.setText(Float.toString(myPos.getDistance()));
+            speed.setText(Float.toString(myPos.getAverageSpeed()));
         }
         catch (Exception e) {
             Log.e("error","",e);
         }
-    }*/
+    }
 }

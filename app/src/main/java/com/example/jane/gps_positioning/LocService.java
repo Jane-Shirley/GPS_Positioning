@@ -33,11 +33,11 @@ import java.text.SimpleDateFormat;
 
 public class LocService extends Service {
 
-    private IBinder binder = new MyBinder();
+    /*private IBinder binder = new MyBinder();*/
     private File file;
     OutputStreamWriter myWriter;
     LocationManager locationManager;
-    Location start, end;
+    Location start;
 
     private static final String header = "<gpx version=\"1.0\">\n<trk>\n<trkseg>";
     private static final String footer = "</trkseg></trk></gpx>";
@@ -50,7 +50,7 @@ public class LocService extends Service {
         //create new file in sdcard
 
         try{
-            file = new File(Environment.getExternalStorageDirectory(),"location.gpx");
+            file = new File(Environment.getExternalStorageDirectory(),"locationLog.gpx");
 //            file = new File(Environment.getExternalStorageDirectory(),"trace.txt");
             file.createNewFile();
             myWriter = new OutputStreamWriter(new FileOutputStream(file));
@@ -75,8 +75,9 @@ public class LocService extends Service {
 
         //register for location data
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 50, locListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 20000, 500, locListener);
 
+        start = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         return START_NOT_STICKY;
     }
 
@@ -145,11 +146,45 @@ public class LocService extends Service {
     }
 
     //return an instance of this class to MainActivity
-    public class MyBinder extends Binder {
+    /*public class MyBinder extends Binder {
         LocService getService() {
             return LocService.this;
         }
-    }
+    }*/
+
+    private final IMyPositionInterface.Stub binder = new IMyPositionInterface.Stub() {
+        public Location getLocation() {
+            Location loc = null;
+            try {
+                loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
+            catch (SecurityException e){
+                Log.e("error","",e);
+            }
+            return loc;
+        }
+
+        @Override
+        public double getLatitude() throws RemoteException {
+            return getLocation().getLatitude();
+        }
+
+        @Override
+        public double getLongitude() throws RemoteException {
+            return getLocation().getLongitude();
+        }
+
+        @Override
+        public float getDistance() throws RemoteException {
+            return start.distanceTo(getLocation());
+        }
+
+        @Override
+        public float getAverageSpeed() throws RemoteException {
+            return getLocation().getSpeed();
+        }
+    };
+
 }
 
 
